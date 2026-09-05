@@ -11,7 +11,7 @@ import {
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { ClerkProvider, Show, SignIn, SignUp, useClerk, useAuth, useUser } from '@clerk/react';
+import { ClerkProvider, Show, SignIn, SignUp, useAuth as useClerkAuth, useClerk as useClerkInstance, useUser as useClerkUser } from '@clerk/react';
 import { publishableKeyFromHost } from '@clerk/react/internal';
 import { shadcn } from '@clerk/themes';
 import { ErrorBoundary } from '@/components/error-boundary';
@@ -438,8 +438,28 @@ function InfoBlock({ icon: Icon, title, text }: { icon: LucideIcon; title: strin
 
 const defaultSettings: UserSettings = { textSize: 'regular', highContrast: false, reducedMotion: false, voice: true, language: 'English', shareMemory: false };
 const basePath = import.meta.env.BASE_URL.replace(/\/$/, '');
-const clerkPubKey = publishableKeyFromHost(window.location.hostname, import.meta.env.VITE_CLERK_PUBLISHABLE_KEY);
+const configuredClerkKey = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
+const clerkPubKey = configuredClerkKey
+  ? publishableKeyFromHost(window.location.hostname, configuredClerkKey)
+  : undefined;
 const clerkProxyUrl = import.meta.env.VITE_CLERK_PROXY_URL;
+const localDemoUser = { id: 'local-demo-user', fullName: 'Radhika Nair', primaryEmailAddress: { emailAddress: 'demo@smriticare.local' } };
+const localDemoProfile: Profile = { id: 0, userId: localDemoUser.id, role: 'elder', fullName: localDemoUser.fullName, email: localDemoUser.primaryEmailAddress.emailAddress, preferredLanguage: 'English', caregiverName: null, relationship: null, shareMemory: false, connectionCode: 'DEMO-LOCAL', createdAt: getCurrentDateTimeIST(), updatedAt: getCurrentDateTimeIST() };
+
+function useAuth() {
+  if (!clerkPubKey) return { isLoaded: true, isSignedIn: true };
+  return useClerkAuth();
+}
+
+function useUser() {
+  if (!clerkPubKey) return { user: localDemoUser };
+  return useClerkUser();
+}
+
+function useClerk() {
+  if (!clerkPubKey) return { signOut: async () => undefined };
+  return useClerkInstance();
+}
 
 function stripBase(path: string) {
   return basePath && path.startsWith(basePath) ? path.slice(basePath.length) || '/' : path;
@@ -573,11 +593,13 @@ function Router() {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loadingProfile, setLoadingProfile] = useState(false);
   useEffect(() => {
+    if (!clerkPubKey) return;
     if (!isSignedIn) { setProfile(null); return; }
     setLoadingProfile(true);
     void getMe().then(data => setProfile(data.profile)).catch(() => setProfile(null)).finally(() => setLoadingProfile(false));
   }, [isSignedIn, user?.id]);
   if (!isLoaded || (isSignedIn && loadingProfile)) return <div className="grid min-h-[100dvh] place-items-center bg-background text-sm text-muted-foreground">Loading your private space…</div>;
+  if (!clerkPubKey) return <UserScopeContext.Provider value={localDemoUser.id}><AuthenticatedRoutes profile={localDemoProfile} /></UserScopeContext.Provider>;
   if (!isSignedIn) {
     const chooseRole = (role: 'elder' | 'caregiver') => { localStorage.setItem('smriti-pending-role', role); setLocation('/sign-up'); };
     return <Switch><Route path="/sign-in/*?" component={SignInPage} /><Route path="/sign-up/*?" component={SignUpPage} /><Route path="/forgot-password" component={SignInPage} /><Route path="/about"><About settings={defaultSettings} /></Route><Route path="/"><Welcome onRole={chooseRole} /></Route><Route><Redirect to="/sign-in" /></Route></Switch>;
@@ -592,7 +614,7 @@ function ClerkRouting() {
 }
 
 function App() {
-  return <QueryClientProvider client={queryClient}><TooltipProvider><WouterRouter base={basePath}><ErrorBoundary><ClerkRouting /></ErrorBoundary></WouterRouter><Toaster /></TooltipProvider></QueryClientProvider>;
+  return <QueryClientProvider client={queryClient}><TooltipProvider><WouterRouter base={basePath}><ErrorBoundary>{clerkPubKey ? <ClerkRouting /> : <Router />}</ErrorBoundary></WouterRouter><Toaster /></TooltipProvider></QueryClientProvider>;
 }
 
 export default App;
