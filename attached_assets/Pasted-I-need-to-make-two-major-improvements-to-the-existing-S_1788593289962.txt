@@ -1,0 +1,565 @@
+I need to make two major improvements to the existing SmritiCare AI application.
+
+DO NOT rebuild the application from scratch.
+DO NOT remove any existing working features.
+Inspect the existing code first and then implement the changes below.
+
+==================================================
+PART 1 — REAL LOGIN / SIGN-UP SYSTEM
+==================================================
+
+Currently the app has role selection.
+
+I now want a proper authentication flow before users enter the dashboard.
+
+Create these pages:
+
+1. Welcome / Landing Page
+2. Login
+3. Sign Up
+4. Forgot Password
+5. Role selection during registration
+
+Roles:
+
+- Elderly User
+- Caregiver
+
+LOGIN PAGE
+
+Fields:
+
+Email
+Password
+
+Buttons:
+
+Login
+Create Account
+Forgot Password
+
+Also provide:
+
+Show/Hide Password
+Remember session
+Clear validation messages
+
+SIGN UP PAGE
+
+Fields:
+
+Full Name
+Email
+Password
+Confirm Password
+Role
+
+For Elderly User additionally:
+
+Preferred Language:
+English
+Hindi
+
+For Caregiver:
+
+Caregiver Name
+Relationship/Connection to Elderly User
+
+Do NOT collect unnecessary sensitive medical information.
+
+==================================================
+AUTHENTICATION MUST BE REAL
+==================================================
+
+Do not create a fake login where any password works.
+
+Use a proper persistent authentication system supported by the Replit environment.
+
+If a database/backend is already configured, use it.
+
+If not, create a secure backend authentication system using the available Replit-supported database.
+
+Passwords MUST NOT be stored as plain text.
+
+Hash passwords securely.
+
+Use authenticated sessions/tokens appropriately.
+
+Protect dashboard routes.
+
+Unauthenticated users must not be able to directly open:
+
+/elderly
+/caregiver
+/progress
+/memory
+/routine
+
+If a user is not logged in:
+
+→ redirect to Login.
+
+After successful login:
+
+Elderly User
+→ Elder Dashboard
+
+Caregiver
+→ Caregiver Dashboard
+
+A user must only be able to access the dashboard appropriate to their role.
+
+Add:
+
+Logout
+
+After logout:
+
+→ clear session
+→ return to Login page
+
+==================================================
+CAREGIVER ↔ ELDERLY CONNECTION
+==================================================
+
+Create a simple way for a caregiver to connect to an elderly user.
+
+For the prototype:
+
+Generate a unique 6-digit caregiver connection code for the elderly profile.
+
+Example:
+
+SMR-482915
+
+Caregiver enters the code.
+
+After successful connection:
+
+Caregiver can see the connected elderly user's:
+
+- training results
+- progress
+- routine completion
+- memory training history
+- personal baseline
+- adaptive difficulty
+- training insights
+
+Do NOT expose personal memory information unless the elderly user has explicitly enabled sharing.
+
+Create a setting:
+
+“Share My Memory Information with Caregiver”
+
+ON / OFF
+
+Default:
+OFF
+
+==================================================
+PART 2 — FIX DATE AND TIME COMPLETELY
+==================================================
+
+IMPORTANT:
+
+The application currently shows an incorrect/demo/static date.
+
+Remove ALL hard-coded dates and times from the application.
+
+Never use:
+
+2025
+2026-01-01
+01/01/2026
+or any fixed demo date
+
+for the current date/time.
+
+The application must calculate the current date dynamically.
+
+==================================================
+INDIA TIMEZONE
+==================================================
+
+The primary target audience is India.
+
+Use:
+
+Asia/Kolkata
+
+as the default timezone.
+
+The current date and time must be calculated correctly for Indian Standard Time (IST).
+
+Do NOT simply depend on the browser displaying an arbitrary formatted date.
+
+Create a centralized date/time utility.
+
+Example functions:
+
+getCurrentDateIST()
+getCurrentTimeIST()
+getCurrentDateTimeIST()
+formatDateIST()
+formatTimeIST()
+
+Use this utility everywhere.
+
+==================================================
+REAL-TIME CLOCK
+==================================================
+
+Add a small live clock where appropriate.
+
+Example:
+
+Saturday, 5 September 2026
+12:35 PM
+
+The time should update automatically without refreshing the page.
+
+Update at least every second or minute as appropriate.
+
+Do not hard-code the displayed date.
+
+==================================================
+TODAY'S SESSION
+==================================================
+
+“Today's Personalized Session” must actually use today's date.
+
+When the user opens the app:
+
+calculate today's date in Asia/Kolkata.
+
+If today's session has already been completed:
+
+show today's completed status.
+
+If not:
+
+show today's available session.
+
+Do NOT show yesterday's or a hard-coded session.
+
+==================================================
+GAME RESULTS
+==================================================
+
+Every game result must store:
+
+- user ID
+- game name
+- score
+- accuracy
+- mistakes
+- attempts
+- difficulty
+- completion time
+- createdAt timestamp
+- local date in IST
+
+Example:
+
+createdAt:
+2026-09-05T12:35:00+05:30
+
+Do NOT manually write dates into game results.
+
+Use the current timestamp when the result is actually created.
+
+==================================================
+PROGRESS PAGE
+==================================================
+
+Progress must be based on actual saved game results.
+
+Show:
+
+Today
+Yesterday
+Last 7 Days
+Last 30 Days
+
+Calculate date ranges dynamically.
+
+Example:
+
+If today is September 5:
+
+Today = September 5
+Yesterday = September 4
+Last 7 Days = August 30 – September 5
+
+If tomorrow becomes September 6:
+
+automatically update the ranges.
+
+No hard-coded date ranges.
+
+==================================================
+CAREGIVER DASHBOARD
+==================================================
+
+Remove fake/current-date confusion.
+
+Clearly separate:
+
+REAL USER DATA
+and
+DEMO DATA
+
+If demo data is being displayed, label it:
+
+“Demo Data”
+
+Real user activity must use the actual logged-in user's data.
+
+Show:
+
+Today's Activity
+Last 7 Days
+Current Personal Baseline
+Recent Performance
+Training History
+
+Use actual timestamps.
+
+==================================================
+ROUTINE
+==================================================
+
+Routine items must work according to the current date.
+
+For recurring daily routines:
+
+Automatically show them for the current day.
+
+Track completion separately for each date.
+
+Example:
+
+September 5:
+Morning routine = completed
+
+September 6:
+Morning routine = not completed
+
+Do NOT carry yesterday's completion state into a new day.
+
+==================================================
+MEMORY
+==================================================
+
+Memory entries must store:
+
+user ID
+createdAt
+updatedAt
+
+Display dates using the user's local/IST date format.
+
+Do not overwrite dates with static values.
+
+==================================================
+MY LIFE STORY
+==================================================
+
+Memory stories must also store:
+
+user ID
+createdAt
+updatedAt
+
+Recall exercises should use the user's actual saved stories.
+
+==================================================
+OFFLINE MODE
+==================================================
+
+The application already supports offline mode.
+
+Make sure offline-created results store:
+
+local timestamp
+sync status
+user ID
+
+When internet returns:
+
+show:
+
+“Connection restored.”
+
+Do not fake a server synchronization.
+
+If a real backend/database is available, synchronize pending records properly.
+
+==================================================
+DEMO DATA
+==================================================
+
+Keep demo data only for demonstrating the caregiver dashboard when there is no real patient activity.
+
+Clearly label it:
+
+DEMO DATA
+
+Never mix demo data with real patient data without clearly identifying it.
+
+==================================================
+SECURITY
+==================================================
+
+Important:
+
+Every database record must belong to a specific user ID.
+
+A logged-in user must not be able to access another user's private data simply by changing an ID in the URL.
+
+Caregiver data access must only work for connected/authorized elderly users.
+
+Do not store passwords in localStorage.
+
+Do not put passwords in frontend code.
+
+Do not expose secrets/API keys.
+
+==================================================
+UI
+==================================================
+
+Add a professional login experience consistent with SmritiCare AI.
+
+Login page:
+
+SmritiCare AI
+
+“A Companion for Every Elder”
+
+Large accessible controls.
+
+Simple language.
+
+High contrast support.
+
+Hindi/English support.
+
+The elderly user should not feel overwhelmed by the login form.
+
+Add:
+
+Forgot password
+Create account
+Login
+
+==================================================
+FINAL TESTING
+==================================================
+
+After implementation, test everything.
+
+TEST 1:
+
+Create Elderly account
+→ Login
+→ Elder Dashboard
+
+TEST 2:
+
+Logout
+→ Login page
+
+TEST 3:
+
+Create Caregiver account
+→ Login
+→ Caregiver Dashboard
+
+TEST 4:
+
+Wrong password
+→ Login fails with clear message
+
+TEST 5:
+
+Create game result
+→ timestamp should be actual current IST time
+
+TEST 6:
+
+Refresh page
+→ result remains saved
+
+TEST 7:
+
+Check current date
+→ must match actual India date
+
+TEST 8:
+
+Wait for clock
+→ time updates automatically
+
+TEST 9:
+
+Change system/browser timezone if possible
+→ application should still use Asia/Kolkata for the primary displayed date/time
+
+TEST 10:
+
+Create routine completion today
+→ tomorrow it must not appear as completed
+
+TEST 11:
+
+Connect caregiver to elderly account
+→ caregiver sees authorized data
+
+TEST 12:
+
+Elderly user disables memory sharing
+→ caregiver cannot see private memory information
+
+TEST 13:
+
+Logout
+→ protected dashboard URLs redirect to Login
+
+TEST 14:
+
+Build the production application.
+
+Fix ALL:
+- TypeScript errors
+- runtime errors
+- authentication errors
+- database errors
+- console errors
+- date/time bugs
+- timezone bugs
+- routing bugs
+
+==================================================
+FINAL REQUIREMENT
+==================================================
+
+I do NOT want a mock login.
+
+I do NOT want a static date.
+
+I do NOT want hard-coded timestamps.
+
+I want:
+
+REAL AUTHENTICATION
+REAL USER SESSIONS
+REAL USER-SPECIFIC DATA
+REAL CURRENT INDIA DATE/TIME
+REAL GAME RESULT TIMESTAMPS
+REAL DAILY ROUTINE DATES
+REAL CAREGIVER-ELDER CONNECTION
+REAL PERSISTENT DATA
+
+Preserve all existing SmritiCare AI features and make these improvements without breaking the current application.
