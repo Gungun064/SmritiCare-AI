@@ -1,0 +1,28 @@
+kind = "web"
+previewPath = "/"
+title = "SmritiCare AI"
+description = "A local-first cognitive support and memory assistance platform for elders and caregivers, with playable memory games, personal stories, routines, progress tracking, and explainable adaptive training insights."
+version = "1.0.0"
+id = "artifacts/smriticcare-ai"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 21256
+
+[services.development]
+run = "pnpm --filter @workspace/smriticcare-ai run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/smriticcare-ai", "run", "build" ]
+serve = "static"
+publicDir = "artifacts/smriticcare-ai/dist/public"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "21256"
+BASE_PATH = "/"
