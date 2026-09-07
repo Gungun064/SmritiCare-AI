@@ -39,10 +39,13 @@ jobs:
         env:
           NODE_ENV: production
           PORT: 5173
-          BASE_PATH: /
+          BASE_PATH: /SmritiCare-AI/
           VITE_CLERK_PUBLISHABLE_KEY: ${{ secrets.VITE_CLERK_PUBLISHABLE_KEY || vars.VITE_CLERK_PUBLISHABLE_KEY }}
           VITE_CLERK_PROXY_URL: ${{ secrets.VITE_CLERK_PROXY_URL || vars.VITE_CLERK_PROXY_URL }}
         run: pnpm --filter @workspace/smriticcare-ai build
+
+      - name: Enable SPA route fallback
+        run: cp artifacts/smriticcare-ai/dist/public/index.html artifacts/smriticcare-ai/dist/public/404.html
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
