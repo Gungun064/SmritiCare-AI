@@ -550,6 +550,7 @@ function AuthenticatedRoutes({ profile }: { profile: Profile }) {
   const [, setLocation] = useLocation();
   useEffect(() => { setSettings(current => ({ ...current, language: profile.preferredLanguage, shareMemory: profile.shareMemory })); }, [profile.preferredLanguage, profile.shareMemory]);
   useEffect(() => {
+    if (!clerkPubKey) return;
     void getMe().then(data => {
       const updates: Array<[string, unknown]> = [];
       if (data.results.length) updates.push(['smriti-results', apiResultsToGameResults(data.results)]);
