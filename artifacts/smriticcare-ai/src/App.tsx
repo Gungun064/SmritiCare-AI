@@ -507,11 +507,15 @@ const clerkAppearance = {
 };
 
 function SignInPage() {
-  return <div className="flex min-h-[100dvh] items-center justify-center bg-background px-4 py-8"><SignIn routing="path" path={`${basePath}/sign-in`} signUpUrl={`${basePath}/sign-up`} /></div>;
+  return <div className="flex min-h-[100dvh] items-center justify-center bg-background px-4 py-8"><SignIn routing="path" path="/sign-in" signUpUrl={`${basePath}/sign-up`} /></div>;
 }
 
 function SignUpPage() {
-  return <div className="flex min-h-[100dvh] items-center justify-center bg-background px-4 py-8"><SignUp routing="path" path={`${basePath}/sign-up`} signInUrl={`${basePath}/sign-in`} /></div>;
+  return <div className="flex min-h-[100dvh] items-center justify-center bg-background px-4 py-8"><SignUp routing="path" path="/sign-up" signInUrl={`${basePath}/sign-in`} /></div>;
+}
+
+function AuthUnavailablePage() {
+  return <div className="flex min-h-[100dvh] items-center justify-center bg-background px-5 py-8"><div className="w-full max-w-md rounded-[2rem] border border-border bg-card p-7 text-center shadow-sm"><Brand compact /><h1 className="mt-7 font-display text-3xl">Login is not configured</h1><p className="mt-3 text-sm leading-6 text-muted-foreground">This deployment needs its authentication settings before accounts can be used. Please open the configured SmritiCare deployment or add the Clerk publishable key to the build.</p><Link href="/" className="mt-7 inline-flex min-h-11 items-center justify-center rounded-xl bg-primary px-5 py-2 text-sm font-bold text-primary-foreground">Back to SmritiCare</Link></div></div>;
 }
 
 function Onboarding({ onComplete }: { onComplete: (profile: Profile) => void }) {
@@ -599,7 +603,13 @@ function Router() {
     void getMe().then(data => setProfile(data.profile)).catch(() => setProfile(null)).finally(() => setLoadingProfile(false));
   }, [isSignedIn, user?.id]);
   if (!isLoaded || (isSignedIn && loadingProfile)) return <div className="grid min-h-[100dvh] place-items-center bg-background text-sm text-muted-foreground">Loading your private space…</div>;
-  if (!clerkPubKey) return <UserScopeContext.Provider value={localDemoUser.id}><AuthenticatedRoutes profile={localDemoProfile} /></UserScopeContext.Provider>;
+  if (!clerkPubKey) {
+    const chooseRole = (role: 'elder' | 'caregiver') => {
+      localStorage.setItem('smriti-pending-role', role);
+      setLocation('/sign-in');
+    };
+    return <Switch><Route path="/sign-in"><AuthUnavailablePage /></Route><Route path="/sign-up"><AuthUnavailablePage /></Route><Route path="/about"><About settings={defaultSettings} /></Route><Route path="/"><Welcome onRole={chooseRole} /></Route><Route><Redirect to="/" /></Route></Switch>;
+  }
   if (!isSignedIn) {
     const chooseRole = (role: 'elder' | 'caregiver') => { localStorage.setItem('smriti-pending-role', role); setLocation('/sign-up'); };
     return <Switch><Route path="/sign-in/*?" component={SignInPage} /><Route path="/sign-up/*?" component={SignUpPage} /><Route path="/forgot-password" component={SignInPage} /><Route path="/about"><About settings={defaultSettings} /></Route><Route path="/"><Welcome onRole={chooseRole} /></Route><Route><Redirect to="/sign-in" /></Route></Switch>;

@@ -39,7 +39,9 @@ jobs:
         env:
           NODE_ENV: production
           PORT: 5173
-          BASE_PATH: /SmritiCare-AI/
+          BASE_PATH: /
+          VITE_CLERK_PUBLISHABLE_KEY: ${{ secrets.VITE_CLERK_PUBLISHABLE_KEY || vars.VITE_CLERK_PUBLISHABLE_KEY }}
+          VITE_CLERK_PROXY_URL: ${{ secrets.VITE_CLERK_PROXY_URL || vars.VITE_CLERK_PROXY_URL }}
         run: pnpm --filter @workspace/smriticcare-ai build
 
       - name: Upload Pages artifact
