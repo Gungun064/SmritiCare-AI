@@ -514,8 +514,8 @@ function SignUpPage() {
   return <div className="flex min-h-[100dvh] items-center justify-center bg-background px-4 py-8"><SignUp routing="path" path="/sign-up" signInUrl={`${basePath}/sign-in`} /></div>;
 }
 
-function AuthUnavailablePage() {
-  return <div className="flex min-h-[100dvh] items-center justify-center bg-background px-5 py-8"><div className="w-full max-w-md rounded-[2rem] border border-border bg-card p-7 text-center shadow-sm"><Brand compact /><h1 className="mt-7 font-display text-3xl">Login is not configured</h1><p className="mt-3 text-sm leading-6 text-muted-foreground">This deployment needs its authentication settings before accounts can be used. Please open the configured SmritiCare deployment or add the Clerk publishable key to the build.</p><Link href="/" className="mt-7 inline-flex min-h-11 items-center justify-center rounded-xl bg-primary px-5 py-2 text-sm font-bold text-primary-foreground">Back to SmritiCare</Link></div></div>;
+function DemoSignInPage({ onContinue }: { onContinue: (role: 'elder' | 'caregiver') => void }) {
+  return <div className="flex min-h-[100dvh] items-center justify-center bg-background px-5 py-8"><div className="w-full max-w-md rounded-[2rem] border border-border bg-card p-7 shadow-sm"><Brand compact /><p className="mt-7 font-mono-app text-xs font-bold uppercase tracking-[.18em] text-accent">Preview access</p><h1 className="mt-2 font-display text-3xl">Choose your SmritiCare space</h1><p className="mt-3 text-sm leading-6 text-muted-foreground">Authentication is not configured for this static deployment yet. Use preview access to try the app, or add the Clerk key for real accounts.</p><div className="mt-7 grid gap-3"><Button onClick={() => onContinue('elder')}><Sun size={17} /> Continue as elderly user</Button><Button variant="secondary" onClick={() => onContinue('caregiver')}><UsersRound size={17} /> Continue as caregiver</Button></div><Link href="/" className="mt-5 block text-center text-sm font-semibold text-muted-foreground hover:text-primary">Back to welcome</Link></div></div>;
 }
 
 function Onboarding({ onComplete }: { onComplete: (profile: Profile) => void }) {
@@ -595,6 +595,7 @@ function Router() {
   const { user } = useUser();
   const [location, setLocation] = useLocation();
   const [profile, setProfile] = useState<Profile | null>(null);
+  const [demoRole, setDemoRole] = useState<Role>(null);
   const [loadingProfile, setLoadingProfile] = useState(false);
   useEffect(() => {
     if (!clerkPubKey) return;
@@ -604,11 +605,16 @@ function Router() {
   }, [isSignedIn, user?.id]);
   if (!isLoaded || (isSignedIn && loadingProfile)) return <div className="grid min-h-[100dvh] place-items-center bg-background text-sm text-muted-foreground">Loading your private space…</div>;
   if (!clerkPubKey) {
+    if (demoRole) {
+      const demoProfile = { ...localDemoProfile, role: demoRole } as Profile;
+      return <UserScopeContext.Provider value={localDemoUser.id}><AuthenticatedRoutes profile={demoProfile} /></UserScopeContext.Provider>;
+    }
     const chooseRole = (role: 'elder' | 'caregiver') => {
       localStorage.setItem('smriti-pending-role', role);
       setLocation('/sign-in');
     };
-    return <Switch><Route path="/sign-in"><AuthUnavailablePage /></Route><Route path="/sign-up"><AuthUnavailablePage /></Route><Route path="/about"><About settings={defaultSettings} /></Route><Route path="/"><Welcome onRole={chooseRole} /></Route><Route><Redirect to="/" /></Route></Switch>;
+    const continueDemo = (role: 'elder' | 'caregiver') => { setDemoRole(role); setLocation(role === 'elder' ? '/elder/home' : '/caregiver/dashboard'); };
+    return <Switch><Route path="/sign-in"><DemoSignInPage onContinue={continueDemo} /></Route><Route path="/sign-up"><DemoSignInPage onContinue={continueDemo} /></Route><Route path="/about"><About settings={defaultSettings} /></Route><Route path="/"><Welcome onRole={chooseRole} /></Route><Route><Redirect to="/" /></Route></Switch>;
   }
   if (!isSignedIn) {
     const chooseRole = (role: 'elder' | 'caregiver') => { localStorage.setItem('smriti-pending-role', role); setLocation('/sign-up'); };
